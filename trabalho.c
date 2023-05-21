@@ -7,8 +7,7 @@
 #define HMAPA 20
 #define SCREENWIDTH BLOCKSIZE*WMAPA
 #define SCREENHEIGHT BLOCKSIZE*HMAPA
-
-//Observação: É necessário minimizar o terminal que está no fundo para iniciar e mostrar o mapa
+#define BLOCO_TRABALHO_3 2
 
 enum KEYS{UP, DOWN, LEFT, RIGHT};
 enum KEYS2{W,S,A,D};
@@ -63,16 +62,19 @@ void drawMap(){
 }
 
 bool colisao(int x, int y){
-   int pX1= x / BLOCKSIZE;
-   int pY1= y / BLOCKSIZE;
-   int pX2= (x+25) / BLOCKSIZE;
-   int pY2= (y+25) / BLOCKSIZE;
-   //printf ("x: %d  y: %d   c1: %d  l1: %d   c2: %d  l2: %d \n",x,y,pX1,pY1,pX2,pY2);
-   if (mapa[pY1][pX1]==1 || mapa[pY2][pX2]==1 ||
-       mapa[pY1][pX2]==1 || mapa[pY2][pX1]==1 )
-      return true;
-   else
-      return false;
+    int tileX = x / BLOCKSIZE;
+    int tileY = y / BLOCKSIZE;
+
+    if (tileX < 0 || tileX >= WMAPA || tileY < 0 || tileY >= HMAPA) {
+        return true;
+    }
+
+    int tileValue = mapa[tileY][tileX];
+    if (tileValue == 2 || tileValue == BLOCO_TRABALHO_3) {
+        return false;
+    }
+
+    return true;
 }
 
 int main() {
@@ -81,10 +83,10 @@ int main() {
     const float FPS = 60;
     bool done = false;
     bool redesenha = true;
-    int posX = 35;
-    int posY = 35;
-    int posX2 = 265;
-    int posY2 = 265;
+    int posX = 265;
+    int posY = 265;
+    int posX2 = 605;
+    int posY2 = 105;
 
     bool keys[4] = {false, false, false, false};
     bool keys2[4] = {false, false, false, false};
@@ -112,6 +114,14 @@ int main() {
 
     ALLEGRO_BITMAP *player2 = al_load_bitmap("CowboyFeliz.png");
     ALLEGRO_BITMAP *player = al_load_bitmap("BombinhoFalando.png");
+    ALLEGRO_BITMAP *personagem1 = al_load_bitmap("BombinhoAndando.png");
+    ALLEGRO_BITMAP *armadillo = al_load_bitmap("Armadillo.png");
+    ALLEGRO_BITMAP *slime = al_load_bitmap("SlimeParadoDeFrente.png");
+    ALLEGRO_BITMAP *coqueiro = al_load_bitmap("coqueiro.png");
+    ALLEGRO_BITMAP *personagem3 = al_load_bitmap("personagem3.png");
+    ALLEGRO_BITMAP *personagem4 = al_load_bitmap("personagem4.png");
+    ALLEGRO_BITMAP *personagem5 = al_load_bitmap("personagem5.png");
+    ALLEGRO_BITMAP *personagem6 = al_load_bitmap("personagem6.png");
 
     al_start_timer(timer);
 
@@ -199,6 +209,14 @@ int main() {
 
             al_draw_bitmap(player, posX, posY, 0);
             al_draw_bitmap(player2, posX2, posY2, 0);
+            al_draw_bitmap(personagem1, 100, 220, 0);
+            al_draw_bitmap(armadillo, 100, 400, 0);
+            al_draw_bitmap(slime, 70, 390, 0);
+            al_draw_bitmap(coqueiro, 155, 390, 0);
+            al_draw_bitmap(personagem3, 600, 500, 0);
+            al_draw_bitmap(personagem4, 500, 300, 0);
+            al_draw_bitmap(personagem5, 600, 300, 0);
+            al_draw_bitmap(personagem6, 650, 300, 0);
 
             al_flip_display();
             redesenha = false;
