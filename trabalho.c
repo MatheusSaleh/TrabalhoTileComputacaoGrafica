@@ -2,6 +2,7 @@
 #include<allegro5/allegro_primitives.h>
 #include<allegro5/allegro_image.h>
 
+
 #define BLOCKSIZE 32
 #define WMAPA 50
 #define HMAPA 20
@@ -9,10 +10,12 @@
 #define SCREENHEIGHT BLOCKSIZE*HMAPA
 #define BLOCO_TRABALHO_3 2
 
-enum KEYS{UP, DOWN, LEFT, RIGHT};
-enum KEYS2{W,S,A,D};
 
-const char* blockFiles[5] = {
+enum KEYS {UP, DOWN, LEFT, RIGHT};
+enum KEYS2 {W,S,A,D};
+
+const char* blockFiles[5] =
+{
     "blocoDoTrabalho1.bmp",
     "blocoDoTrabalho2.bmp",
     "blocoDoTrabalho3.bmp",
@@ -20,7 +23,8 @@ const char* blockFiles[5] = {
     "blocoDoTrabalho5.bmp"
 };
 
-int mapa[25][40] = {
+int mapa[25][40] =
+{
     {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4,4,4,4,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
     {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4,4,4,4,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
     {2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,4,4,4,4,4,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2},
@@ -53,31 +57,71 @@ int mapa[25][40] = {
 
 ALLEGRO_BITMAP *blocos[4] = {NULL, NULL, NULL, NULL};
 
-void drawMap(){
-    for(int i = 0; i < HMAPA; i++){
-        for(int j = 0; j < WMAPA; j++){
+void drawMap()
+{
+    for(int i = 0; i < HMAPA; i++)
+    {
+        for(int j = 0; j < WMAPA; j++)
+        {
             al_draw_bitmap(blocos[ mapa[i][j] ], j*BLOCKSIZE, i*BLOCKSIZE, 0 );
         }
     }
 }
 
-bool colisao(int x, int y){
-    int tileX = x / BLOCKSIZE;
-    int tileY = y / BLOCKSIZE;
+bool colisao(int x, int y)
+{
+    int pX1= x / BLOCKSIZE;
+    int pY1= y / BLOCKSIZE;
+    int pX2= (x+25) / BLOCKSIZE;
+    int pY2= (y+25) / BLOCKSIZE;
+    //printf ("x: %d  y: %d   c1: %d  l1: %d   c2: %d  l2: %d \n",x,y,pX1,pY1,pX2,pY2);
+    if (mapa[pY1][pX1] !=2 || mapa[pY2][pX2] !=2 ||
+            mapa[pY1][pX2] !=2 || mapa[pY2][pX1] !=2 )
+        return true;
+    else
+        return false;
+}
 
-    if (tileX < 0 || tileX >= WMAPA || tileY < 0 || tileY >= HMAPA) {
+bool colisaoDoCowboy(int x, int y)
+{
+    int pX1= x / BLOCKSIZE;
+    int pY1= y / BLOCKSIZE;
+    int pX2= (x+25) / BLOCKSIZE;
+    int pY2= (y+25) / BLOCKSIZE;
+    printf ("x: %d  y: %d   c1: %d  l1: %d   c2: %d  l2: %d \n",x,y,pX1,pY1,pX2,pY2);
+    if (mapa[pY1][pX1] ==2 || mapa[pY2][pX2] ==2 ||
+            mapa[pY1][pX2] ==2 || mapa[pY2][pX1] ==2 )
+    {
+        printf("Colidiu");
         return true;
     }
 
-    int tileValue = mapa[tileY][tileX];
-    if (tileValue == 2 || tileValue == BLOCO_TRABALHO_3) {
+    else
         return false;
-    }
-
-    return true;
 }
 
-int main() {
+bool checkColision(int playerX, int playerY, int characterX, int characterY, int player2, int personagem3)
+{
+    int playerLeft = playerX;
+    int playerRight = playerX + al_get_bitmap_width(player2);
+    int playerTop = playerY;
+    int playerBottom = playerY + al_get_bitmap_height(player2);
+
+    int characterLeft = characterX;
+    int characterRight = characterX + al_get_bitmap_width(personagem3);
+    int characterTop = characterY;
+    int characterBottom = characterY + al_get_bitmap_height(personagem3);
+
+    if(playerRight >= characterLeft && playerLeft <= characterRight &&
+            playerBottom >= characterTop && playerTop <= characterBottom)
+    {
+        return true;
+    }
+    return false;
+}
+
+int main()
+{
     ALLEGRO_DISPLAY *display;
 
     const float FPS = 60;
@@ -85,8 +129,15 @@ int main() {
     bool redesenha = true;
     int posX = 265;
     int posY = 265;
-    int posX2 = 605;
-    int posY2 = 105;
+    int posX2 = 650;
+    int posY2 = 150;
+    int posX5 = 600;
+    int posY5 = 300;
+    int posX6 = 650;
+    int posY6 = 300;
+    int posX3 = 600;
+    int posY3 = 500;
+
 
     bool keys[4] = {false, false, false, false};
     bool keys2[4] = {false, false, false, false};
@@ -125,34 +176,84 @@ int main() {
 
     al_start_timer(timer);
 
-    while(!done){
+    while(!done)
+    {
         ALLEGRO_EVENT events;
         al_wait_for_event(event_queue, &events);
         ALLEGRO_EVENT_TYPE tipoEvento=events.type;
-        switch(tipoEvento){
-            case ALLEGRO_EVENT_TIMER: { redesenha = true; break;}
-            case ALLEGRO_EVENT_DISPLAY_CLOSE: {done = true; break;}
-            case ALLEGRO_EVENT_KEY_DOWN: {
-                int tecla = events.keyboard.keycode;
-                switch(tecla){
-                case ALLEGRO_KEY_UP: {keys[UP] = true; break;}
-                case ALLEGRO_KEY_DOWN: {keys[DOWN] = true; break;}
-                case ALLEGRO_KEY_LEFT: {keys[LEFT] = true; break;}
-                case ALLEGRO_KEY_RIGHT: {keys[RIGHT] = true; break;}
-                }
+        switch(tipoEvento)
+        {
+        case ALLEGRO_EVENT_TIMER:
+        {
+            redesenha = true;
+            break;
+        }
+        case ALLEGRO_EVENT_DISPLAY_CLOSE:
+        {
+            done = true;
+            break;
+        }
+        case ALLEGRO_EVENT_KEY_DOWN:
+        {
+            int tecla = events.keyboard.keycode;
+            switch(tecla)
+            {
+            case ALLEGRO_KEY_UP:
+            {
+                keys[UP] = true;
                 break;
             }
-            case ALLEGRO_EVENT_KEY_UP: {
-                int tecla = events.keyboard.keycode;
-                switch(tecla){
-                case ALLEGRO_KEY_UP: {keys[UP] = false; break;}
-                case ALLEGRO_KEY_DOWN: {keys[DOWN] = false;break; }
-                case ALLEGRO_KEY_LEFT: {keys[LEFT] = false; break;}
-                case ALLEGRO_KEY_RIGHT: {keys[RIGHT] = false; break;}
-                case ALLEGRO_KEY_ESCAPE: {done = true; break; }
-                }
+            case ALLEGRO_KEY_DOWN:
+            {
+                keys[DOWN] = true;
                 break;
             }
+            case ALLEGRO_KEY_LEFT:
+            {
+                keys[LEFT] = true;
+                break;
+            }
+            case ALLEGRO_KEY_RIGHT:
+            {
+                keys[RIGHT] = true;
+                break;
+            }
+            }
+            break;
+        }
+        case ALLEGRO_EVENT_KEY_UP:
+        {
+            int tecla = events.keyboard.keycode;
+            switch(tecla)
+            {
+            case ALLEGRO_KEY_UP:
+            {
+                keys[UP] = false;
+                break;
+            }
+            case ALLEGRO_KEY_DOWN:
+            {
+                keys[DOWN] = false;
+                break;
+            }
+            case ALLEGRO_KEY_LEFT:
+            {
+                keys[LEFT] = false;
+                break;
+            }
+            case ALLEGRO_KEY_RIGHT:
+            {
+                keys[RIGHT] = false;
+                break;
+            }
+            case ALLEGRO_KEY_ESCAPE:
+            {
+                done = true;
+                break;
+            }
+            }
+            break;
+        }
         }
         if(!colisao(posX, posY-keys[UP] * 2))
             posY -= keys[UP] * 2;
@@ -163,24 +264,28 @@ int main() {
         if(!colisao(posX+keys[RIGHT]*2, posY))
             posX += keys[RIGHT] * 2;
 
-        if(events.type == ALLEGRO_EVENT_KEY_DOWN){
-            switch(events.keyboard.keycode){
-                case ALLEGRO_KEY_W:
-                    keys2[W] = true;
-                    break;
-                case ALLEGRO_KEY_S:
-                    keys2[S] = true;
-                    break;
-                case ALLEGRO_KEY_A:
-                    keys2[A] = true;
-                    break;
-                case ALLEGRO_KEY_D:
-                    keys2[D] = true;
-                    break;
+        if(events.type == ALLEGRO_EVENT_KEY_DOWN)
+        {
+            switch(events.keyboard.keycode)
+            {
+            case ALLEGRO_KEY_W:
+                keys2[W] = true;
+                break;
+            case ALLEGRO_KEY_S:
+                keys2[S] = true;
+                break;
+            case ALLEGRO_KEY_A:
+                keys2[A] = true;
+                break;
+            case ALLEGRO_KEY_D:
+                keys2[D] = true;
+                break;
             }
         }
-        else if(events.type == ALLEGRO_EVENT_KEY_UP){
-            switch(events.keyboard.keycode){
+        else if(events.type == ALLEGRO_EVENT_KEY_UP)
+        {
+            switch(events.keyboard.keycode)
+            {
             case ALLEGRO_KEY_W:
                 keys2[W] = false;
                 break;
@@ -203,8 +308,33 @@ int main() {
         posY2 += keys2[S] * 2;
         posX2 -= keys2[A] * 2;
         posX2 += keys2[D] * 2;
+        if (posX2 == posX6 && posY2 == posY6)
+        {
+            posX6 = -100;
+            posY6 = -100;
+        }
+        if(posX2 == posX5 && posY2 == posY5)
+        {
+            posX5 = -100;
+            posY5 = -100;
+        }
+        if(posX2 == posX3 && posY2 == posY3){
+            posX3 = -100;
+            posY3 = -100;
+        }
 
-        if(redesenha){
+        if(colisaoDoCowboy(posX2, posY2))
+        {
+            posX2 = -100;
+            posY2 = -100;
+        }
+
+
+
+
+
+        if(redesenha)
+        {
             drawMap(mapa);
 
             al_draw_bitmap(player, posX, posY, 0);
@@ -213,10 +343,20 @@ int main() {
             al_draw_bitmap(armadillo, 100, 400, 0);
             al_draw_bitmap(slime, 70, 390, 0);
             al_draw_bitmap(coqueiro, 155, 390, 0);
-            al_draw_bitmap(personagem3, 600, 500, 0);
+            if(posX3 != -100 && posY3 != -100){
+                al_draw_bitmap(personagem3, posX3, posY3, 0);
+            }
             al_draw_bitmap(personagem4, 500, 300, 0);
-            al_draw_bitmap(personagem5, 600, 300, 0);
-            al_draw_bitmap(personagem6, 650, 300, 0);
+            if(posX5 != -100 && posY5 != -100){
+                al_draw_bitmap(personagem5, posX5, posY5, 0);
+            }
+            if (posX6 != -100 && posY6 != -100)
+            {
+                al_draw_bitmap(personagem6, posX6, posY6, 0);
+            };
+
+
+
 
             al_flip_display();
             redesenha = false;
